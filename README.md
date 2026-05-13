@@ -125,3 +125,26 @@ python run_mvp.py
 - Registrar execuções em banco de dados.
 - Adicionar testes automatizados para tools e nodes do LangGraph.
 - Melhorar o roteamento do grafo com decisões condicionais.
+
+## Credits / Attribution
+
+This project uses the AI4I 2020 Predictive Maintenance Dataset:
+
+AI4I 2020 Predictive Maintenance Dataset [Dataset]. (2020). 
+UCI Machine Learning Repository. https://doi.org/10.24432/C5HS5C
+
+License: Creative Commons Attribution 4.0 International (CC BY 4.0).
+
+## Machine documentation used for local RAG testing
+
+The following public manufacturer documentation was used as reference material for local RAG experiments:
+
+- Haas Mill Operator’s Manual
+- Haas VF/VM-Series Interactive Service Manual
+- Haas Mill Spindle Troubleshooting Guide
+- Siemens SINUMERIK 808D Diagnostics Manual
+- Siemens SINUMERIK 808D Advanced Service Manual
+
+These documents are owned by their respective manufacturers. 
+They are not redistributed in this repository. 
+Users should download them from the official manufacturer websites.
