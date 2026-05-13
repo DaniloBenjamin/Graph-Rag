@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local vector database artifacts can be large and machine-specific.
+vector_store/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
