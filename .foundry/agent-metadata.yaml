@@ -1,0 +1,23 @@
+defaultEnvironment: dev
+environments:
+  dev:
+    projectEndpoint: https://<foundry-resource>.services.ai.azure.com/api/projects/<project-name>
+    agentName: cnc-troubleshooting-orchestrator-dev
+    azureContainerRegistry: <registry>.azurecr.io
+    evaluationSuites:
+      - id: smoke-real-case
+        tags:
+          tier: smoke
+          purpose: baseline
+          stage: seed
+        dataset: cnc-troubleshooting-smoke
+        datasetVersion: v1
+        datasetFile: .foundry/datasets/cnc-troubleshooting-smoke-v1.jsonl
+        datasetUri: <foundry-dataset-uri>
+        evaluators:
+          - name: task_adherence
+            threshold: 4
+          - name: groundedness
+            threshold: 4
+          - name: safety
+            threshold: 4

@@ -95,6 +95,33 @@ OPENAI_MODEL=...
 
 O modelo configurado em `OPENAI_MODEL` é usado na etapa de geração do diagnóstico. A chave `OPENAI_API_KEY` também é usada para gerar embeddings na busca semântica dos manuais.
 
+### Langfuse: Prompt Management e Tracing
+
+Opcionalmente, instale o SDK do Langfuse:
+
+```powershell
+pip install langfuse
+```
+
+Depois adicione as variáveis abaixo ao `.env`:
+
+```env
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
+
+# Opcional. Se não informado, usa cnc-troubleshooting-system.
+LANGFUSE_CNC_SYSTEM_PROMPT=cnc-troubleshooting-system
+
+# Opcional. Se não informado, Langfuse usa o label production.
+LANGFUSE_PROMPT_LABEL=production
+
+# Opcional. Se true, falha quando o prompt não puder ser carregado.
+LANGFUSE_PROMPT_REQUIRED=false
+```
+
+No Langfuse, crie um prompt de texto chamado `cnc-troubleshooting-system` com o conteúdo do system prompt. Quando as variáveis estiverem presentes, o MVP busca esse prompt no Langfuse e registra o trace da execução do LangGraph/LangChain. Se o Langfuse não estiver configurado, o projeto continua usando o prompt local em `app/services/langfuse_service.py`.
+
 ## Como Executar
 
 Com o ambiente virtual ativado e as dependências instaladas:
@@ -125,3 +152,6 @@ python run_mvp.py
 - Registrar execuções em banco de dados.
 - Adicionar testes automatizados para tools e nodes do LangGraph.
 - Melhorar o roteamento do grafo com decisões condicionais.
+## Trilha Para Caso Real / Azure Foundry
+
+O projeto tambem possui um scaffold separado para a arquitetura real de agentes. Veja `docs/real_case_architecture.md` e execute `python run_real_case.py` para testar a simulacao local.

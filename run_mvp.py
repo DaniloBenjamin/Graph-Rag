@@ -1,4 +1,8 @@
 from app.graph.cnc_graph import build_cnc_graph
+from app.services.langfuse_service import (
+    get_langfuse_callback_handler,
+    shutdown_langfuse,
+)
 
 
 def main():
@@ -13,12 +17,22 @@ def main():
     config = {
         "configurable": {
             "thread_id": "cnc-troubleshooting-demo-001"
-        }
+        },
+        "metadata": {
+            "langfuse_session_id": "cnc-troubleshooting-demo-001",
+            "langfuse_tags": ["cnc", "mvp", "troubleshooting"],
+        },
     }
 
-    result = graph.invoke(initial_state, config=config)
+    langfuse_handler = get_langfuse_callback_handler()
+    if langfuse_handler:
+        config["callbacks"] = [langfuse_handler]
 
-    print(result["final_response"])
+    try:
+        result = graph.invoke(initial_state, config=config)
+        print(result["final_response"])
+    finally:
+        shutdown_langfuse()
 
 
 if __name__ == "__main__":

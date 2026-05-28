@@ -2,7 +2,8 @@ import json
 import os
 
 from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -13,6 +14,7 @@ from app.schemas.diagnosis import Diagnosis
 from app.tools.check_sensor_thresholds import check_sensor_thresholds
 from app.tools.get_sensor_data import get_sensor_data
 from app.tools.search_machine_manual import search_machine_manual
+from app.services.langfuse_service import get_cnc_system_prompt
 
 
 load_dotenv()
@@ -80,7 +82,10 @@ def retrieve_manual_context_node(state: CNCState) -> CNCState:
     }
 
 
-def generate_diagnosis_node(state: CNCState) -> CNCState:
+def generate_diagnosis_node(
+    state: CNCState,
+    config: RunnableConfig | None = None,
+) -> CNCState:
     model_name = os.getenv("OPENAI_MODEL")
 
     if not model_name:
@@ -107,25 +112,7 @@ def generate_diagnosis_node(state: CNCState) -> CNCState:
             }
         )
 
-    system_prompt = """
-    Você é um agente de reasoning técnico para troubleshooting de manutenção de uma máquina CNC.
-
-    Sua tarefa:
-    1. Analisar os dados de sensores.
-    2. Considerar violações de limites operacionais.
-    3. Usar o contexto recuperado dos manuais.
-    4. Gerar hipótese de causa raiz.
-    5. Recomendar ações seguras para o operador.
-    6. Indicar quando escalar para manutenção.
-
-    Regras importantes:
-    - Não invente fonte, página ou procedimento.
-    - Se o manual não trouxer evidência suficiente, diga isso nas evidências.
-    - Não recomende abrir painéis elétricos, mexer em partes energizadas ou executar reparos perigosos.
-    - Para qualquer ação mecânica ou elétrica de risco, recomende acionar manutenção qualificada.
-    - Baseie a resposta nas evidências fornecidas.
-    - Responda em português do Brasil.
-    """
+    prompt_config = get_cnc_system_prompt()
 
     human_prompt = f"""
     Problema informado pelo operador:
@@ -143,11 +130,22 @@ def generate_diagnosis_node(state: CNCState) -> CNCState:
     Gere um diagnóstico estruturado.
     """
 
-    diagnosis = structured_llm.invoke(
+    prompt_metadata = {}
+    if prompt_config.langfuse_prompt is not None:
+        prompt_metadata["langfuse_prompt"] = prompt_config.langfuse_prompt
+
+    prompt = ChatPromptTemplate(
         [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=human_prompt),
-        ]
+            ("system", prompt_config.content),
+            ("human", "{human_prompt}"),
+        ],
+        metadata=prompt_metadata,
+    )
+
+    diagnosis_chain = prompt | structured_llm
+    diagnosis = diagnosis_chain.invoke(
+        {"human_prompt": human_prompt},
+        config=config,
     )
 
     return {
